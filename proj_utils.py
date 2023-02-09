@@ -69,10 +69,11 @@ def get_feature_extraction_model(img_size = (160,160,3),save_feature_extractor="
 def get_img_and_label(tensor_val):
     img_path = IMAGE_DIR + "/" + tensor_val['img_paths']
     img_label = tensor_val['img_labels']
+    img_label = tf.one_hot(img_label,depth=200)
 
     img = tf.io.read_file(img_path)
     img = tf.io.decode_image(img,channels=3)
-    img = tf.image.convert_image_dtype(img,dtype=tf.float32)
+    img = tf.image.convert_image_dtype(img,dtype=tf.float32) / 255.
     img.set_shape([160,160,3])
     img = tf.image.resize(img,[160,160])
     # print("min max: {} {}".format(tf.reduce_min(img),tf.reduce_max(img)))

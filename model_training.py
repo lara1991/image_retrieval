@@ -1,9 +1,11 @@
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 import numpy as np
+import pandas as pd
 
 from bnn_model import BNNModel
 from proj_utils import input_datapipeline,load_datafiles,get_feature_extraction_model
+from paths_links import MODEL_WEIGHTS_DIR,TRAINING_HISTORY_DIR
 
 
 
@@ -17,6 +19,7 @@ def extract_feature_vectors(image,label):
 
     # print(feature_vec)
     # feature_vec = np.array(feature_vec)
+    # label = tf.keras.utils.to_categorical(label,num_classes=200)
     return (extracted_features,label)
 
 def main():
@@ -57,13 +60,14 @@ def main():
         validation_data=val_ds,
         epochs=2
     )
-    
 
-    
-    
-    
-    
-    
+    history_df = pd.DataFrame(H.history)
+    training_details_path = TRAINING_HISTORY_DIR + "/" + "bnn_model_training.csv"
+    history_df.to_csv(training_details_path,index=False)
+
+    model_weights_save_path = MODEL_WEIGHTS_DIR
+
+   
     
 if __name__=="__main__":
     main()

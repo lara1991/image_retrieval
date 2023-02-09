@@ -33,7 +33,7 @@ class BNNModel:
     
     def create_bnn_model(self,train_size,activation='selu'):
         inputs = tf.keras.layers.Input(shape=(self.n_inputs,))
-        # x = tf.keras.layers.BatchNormalization()(inputs)
+        x = tf.keras.layers.BatchNormalization()(inputs)
         x = inputs
         
         for hidden_unit in self.hidden_units:
