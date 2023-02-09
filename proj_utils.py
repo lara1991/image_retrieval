@@ -1,9 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import pandas as pd 
-import cv2
 import os
-import tqdm
 
 from paths_links import *
 
@@ -39,6 +37,8 @@ def load_datafiles():
             'train_test': train_test_split
         }
     )
+
+    df['img_labels'] = df['img_labels'].astype(np.int32)
     
     return df
 
@@ -59,11 +59,66 @@ def get_feature_extraction_model(img_size = (160,160,3),save_feature_extractor="
     
     feature_extractor_base_model.trainable = False
     
-    if save_feature_extractor:
-        model_save_path = os.path.join(FEATURES_DIR,save_feature_extractor)
-        feature_extractor_model.save(model_save_path)
+    # if save_feature_extractor:
+    #     model_save_path = os.path.join(FEATURES_DIR,save_feature_extractor)
+    #     feature_extractor_model.save(model_save_path)
     
     return feature_extractor_model
 
-def input_datapipeline(df):
+
+def get_img_and_label(tensor_val):
+    img_path = IMAGE_DIR + "/" + tensor_val['img_paths']
+    img_label = tensor_val['img_labels']
+
+    img = tf.io.read_file(img_path)
+    img = tf.io.decode_image(img,channels=3)
+    img = tf.image.convert_image_dtype(img,dtype=tf.float32)
+    img.set_shape([160,160,3])
+    img = tf.image.resize(img,[160,160])
+    # print("min max: {} {}".format(tf.reduce_min(img),tf.reduce_max(img)))
+
+    # img_label = tf.cast(img_label,dtype=tf.int32)
+
+    return (img,img_label)
+
+def image_data_augmentation(image,label):
+    # images = images / 255. ## rescaling images
+
+    # print(image)
+
+    image = tf.image.random_flip_up_down(image)
+    image = tf.image.random_flip_left_right(image)
+    
+    return (image,label)
+
+
+def input_datapipeline(df,batch_size=4,train=True):
+    dataset = tf.data.Dataset.from_tensor_slices(dict(df))
+
+    if train:
+        dataset = dataset.shuffle(df.shape[0],seed=42)
+    dataset = dataset.map(get_img_and_label,num_parallel_calls=tf.data.AUTOTUNE)
+    dataset = dataset.cache()
+    dataset = dataset.batch(batch_size)
+    if train:
+        dataset = dataset.map(image_data_augmentation,num_parallel_calls=tf.data.AUTOTUNE,)
+    # dataset = dataset.map(extract_feature_vectors,num_parallel_calls=tf.data.AUTOTUNE)
+    dataset = dataset.prefetch(tf.data.AUTOTUNE)
+
+
+    # print("\nInside the pipeline")
+    # for data in dataset.take(2):
+    #     print(data)
+    return dataset
+
+
+
+
+## testing area - main functions
+
+def main_datapipeline():
     pass
+
+
+if __name__=="__main__":
+    main_datapipeline()
