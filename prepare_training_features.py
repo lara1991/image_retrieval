@@ -17,6 +17,11 @@ def extracting_features(dataframe,feature_extractor,feature_set_file_name="train
     
     df_training_set = dataframe[dataframe['train_test'] == train_test]
     
+    print(df_training_set.head())
+    df_training_set.to_csv(os.path.join(FEATURES_DIR,feature_set_file_name.replace("features",'dataset')))
+    # exit(0)
+    
+    
     # print(dataframe['train_test'])
     print(df_training_set.head())
     
@@ -33,8 +38,9 @@ def extracting_features(dataframe,feature_extractor,feature_set_file_name="train
         img = np.array(img).astype(np.float32) / 255.
         img = np.expand_dims(img,0)
         
-        extracted_features = feature_extractor.predict(img)
+        extracted_features = feature_extractor.predict(img)[0]
         feature_vec = ",".join([str(v) for v in extracted_features])
+        # print(feature_vec)
         features_save_file.write("{},{}\n".format(label,feature_vec))
     
     features_save_file.close()
@@ -50,7 +56,9 @@ def main():
     
     extracting_features(
         dataframe,
-        feature_extractor
+        feature_extractor,
+        feature_set_file_name="test_features.csv",
+        train_test="0"
     )
 
 if __name__ == '__main__':
